@@ -12,7 +12,6 @@ using Adapt
 
 using Requires
 
-
 ## discovery
 
 let
@@ -30,7 +29,7 @@ let
     end
 
     # optional libraries
-    for name in ("cudnn", )
+    for name in ("cudnn", "cutensor")
         lib = Symbol("lib$name")
         path = find_cuda_library(name, toolkit)
         if path !== nothing
@@ -65,6 +64,7 @@ include("sparse/CUSPARSE.jl")
 include("solver/CUSOLVER.jl")
 include("fft/CUFFT.jl")
 include("rand/CURAND.jl")
+libcutensor !== nothing && include("tensor/CUTENSOR.jl")
 libcudnn !== nothing && include("dnn/CUDNN.jl")
 
 include("nnlib.jl")
@@ -73,7 +73,6 @@ include("deprecated.jl")
 
 
 ## initialization
-
 function __init__()
     # package integrations
     @require ForwardDiff="f6369f11-7733-5829-9624-2563aa707210" include("forwarddiff.jl")
@@ -89,7 +88,8 @@ function __init__()
         CUSOLVER._sparse_handle[] = C_NULL
         CUSPARSE._handle[] = C_NULL
         CURAND._generator[] = nothing
-        isdefined(CuArrays, :CUDNN) && (CUDNN._handle[] = C_NULL)
+        isdefined(CuArrays, :CUDNN)    && (CUDNN._handle[] = C_NULL)
+        isdefined(CuArrays, :CUTENSOR) && (CUTENSOR._handle[] = C_NULL)
     end
     push!(CUDAnative.device!_listeners, callback)
 
